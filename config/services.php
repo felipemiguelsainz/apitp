@@ -31,4 +31,10 @@ return [
         ],
     ],
 
+    'mayten' => [
+        'base_url' => env('MAYTEN_BASE_URL', 'https://mayten.cloud'),
+        'username' => env('MAYTEN_USERNAME'),
+        'password' => env('MAYTEN_PASSWORD'),
+    ],
+
 ];

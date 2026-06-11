@@ -1,12 +1,13 @@
 @extends('home')
 
 @section('content')
-@foreach ($getEmailsJson as $item ){
+@forelse ($linkShortJson as $item)
     <p>{{ $item['idTemp'] }}</p>
     <p>{{ $item['longUrl'] }}</p>
     <p>{{ $item['lastDatetimeClick'] }}</p>
     <p>{{ $item['shortUrl'] }}</p>
     <p>{{ $item['qtyClicks'] }}</p>
-}
-@endforeach
+@empty
+    <p>No hay datos para mostrar.</p>
+@endforelse
 @stop
