@@ -1,66 +1,82 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# ApiTp
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplicación web en **Laravel 11** que consume el API de [mayten.cloud](https://mayten.cloud): se autentica para obtener un token y muestra listados de campañas, correos y links acortados con sus clicks.
 
-## About Laravel
+## Requisitos
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP >= 8.2
+- [Composer](https://getcomposer.org/)
+- Node.js y npm (para los assets con Vite)
+- Credenciales de acceso al API de Mayten
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Instalación
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```bash
+# 1. Clonar e instalar dependencias
+git clone https://github.com/felipemiguelsainz/apitp.git
+cd apitp
+composer install
+npm install
 
-## Learning Laravel
+# 2. Configurar el entorno
+cp .env.example .env
+php artisan key:generate
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+# 3. Crear la base de datos SQLite y correr migraciones
+touch database/database.sqlite
+php artisan migrate
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Variables de entorno
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Completá las credenciales del API en el archivo `.env`:
 
-## Laravel Sponsors
+```dotenv
+MAYTEN_BASE_URL=https://mayten.cloud
+MAYTEN_USERNAME=tu_usuario
+MAYTEN_PASSWORD=tu_password
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+> El `.env` no se versiona. Usá `.env.example` como plantilla.
 
-### Premium Partners
+## Ejecución
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+```bash
+# Servidor de desarrollo
+php artisan serve
 
-## Contributing
+# En otra terminal, compilar assets
+npm run dev
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+La app queda disponible en `http://localhost:8000`.
 
-## Code of Conduct
+## Rutas
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+| Método | URI                      | Acción                  | Descripción                                       |
+| ------ | ------------------------ | ----------------------- | ------------------------------------------------- |
+| GET    | `/`                      | `home`                  | Página de inicio con los accesos                  |
+| GET    | `/getlist/{modalidad}`   | `ApiController@getList` | Lista campañas por modalidad (`EMAIL`, `SMS_CORTO`, `IVR`) |
+| GET    | `/getmails`              | `ApiController@getMails`| Lista los correos creados con su ID               |
+| GET    | `/linkshort`             | `ApiController@linkShort`| Lista los links acortados y la cantidad de clicks |
 
-## Security Vulnerabilities
+## Cómo funciona
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+`ApiController` maneja la integración con Mayten:
 
-## License
+1. **Autenticación** — `getAccessToken()` pide un token con las credenciales de `config/services.php` (leídas del `.env`) y lo guarda en sesión, reutilizándolo en las siguientes peticiones.
+2. **Peticiones autenticadas** — `authorizedGet()` agrega el token como `Bearer` y consulta los endpoints del API.
+3. **Vistas** — los datos se renderizan con Blade (`resources/views/Contents/`). Si el API falla o no hay datos, se muestra un mensaje en lugar de romper la página.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Stack
+
+- Laravel 11 · PHP 8.2
+- Blade + Bootstrap 5.3
+- Vite
+- SQLite
+
+## Tests
+
+```bash
+php artisan test
+```
